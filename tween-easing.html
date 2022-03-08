@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Tween Example with Ease In/Ease Out</title>
+
+	<link href="../css/webglbook.css" rel="stylesheet" /> 
+	<script src="../libs/Three.js"></script>
+	<script src="../libs/Tween.js"></script>
+	<script src="../libs/jquery-1.6.4.js"></script>
+    <script src="../libs/jquery.mousewheel.js"></script>
+	<script src="../libs/RequestAnimationFrame.js"></script>
+	<script src="../sim/sim.js"></script>
+	<!-- <script src="tween-easing_1.js"></script> -->
+	<script>
+			// Constructor
+TweenApp = function()
+{
+	Sim.App.call(this);
+}
+
+// Subclass Sim.App
+TweenApp.prototype = new Sim.App();
+
+// Our custom initializer
+TweenApp.prototype.init = function(param)
+{
+	// Call superclass init code to set up scene, renderer, default camera
+	Sim.App.prototype.init.call(this, param);
+	
+    // Create a point light to show off the MovingBall
+	var light = new THREE.PointLight( 0xffffff, 1, 100);
+	light.position.set(0, 0, 20);
+	this.scene.add(light);
+	
+	this.camera.position.z = 6.667;
+	
+    // Create the MovingBall and add it to our sim
+    var movingBall = new MovingBall();
+    movingBall.init();
+    this.addObject(movingBall);
+    
+    this.movingBall = movingBall;
+}
+
+TweenApp.prototype.update = function()
+{
+    TWEEN.update();
+
+	Sim.App.prototype.update.call(this);
+    
+}
+
+TweenApp.prototype.handleMouseUp = function(x, y)
+{
+	this.movingBall.animate();
+}
+
+// Custom MovingBall class
+MovingBall = function()
+{
+	Sim.Object.call(this);
+}
+
+MovingBall.prototype = new Sim.Object();
+
+MovingBall.prototype.init = function()
+{
+var BALL_TEXTURE = "images/ball_texture.jpg";
+var geometry = new THREE.SphereGeometry(1, 32, 32);
+var material = new THREE.MeshPhongMaterial(
+	{ map: THREE.ImageUtils.loadTexture(BALL_TEXTURE) } );
+var mesh = new THREE.Mesh(geometry, material);
+mesh.position.x = -3.333;
+this.setObject3D(mesh);	
+}
+
+MovingBall.prototype.animate = function()
+{
+    var newpos, easefn;
+    if (this.object3D.position.y > 0)
+    {
+        newpos = this.object3D.position.y - 6.667;
+        easefn = MovingBall.useBounceFunction ?
+                TWEEN.Easing.Bounce.EaseOut :
+                TWEEN.Easing.Quadratic.EaseOut;
+    }
+    else
+    {
+        newpos = this.object3D.position.y + 6.667;
+        easefn = MovingBall.useBounceFunction ?
+                TWEEN.Easing.Bounce.EaseIn :
+                TWEEN.Easing.Quadratic.EaseIn;
+    }
+
+    new TWEEN.Tween(this.object3D.position)
+    .to( {
+        y: newpos
+    }, 2000)
+    .easing(easefn).start();
+
+}
+
+MovingBall.useBounceFunction = false;
+	</script>
+	<script>
+
+	var renderer = null;
+	var scene = null;
+	var camera = null;
+	var mesh = null;
+	
+	$(document).ready(
+		function() {
+			var container = document.getElementById("container");
+			var app = new TweenApp();
+			app.init({ container: container });
+			app.run();
+		}
+	);
+
+	function onEaseInOut(useBounce)
+	{
+		MovingBall.useBounceFunction = useBounce;
+	}
+	</script>
+
+</head>
+<body>
+	<center><h1>Tween Example with Ease In/Ease Out</h1></center>
+    <div id="container" style="width:95%; height:80%; position:absolute;"></div>
+	<div id="prompt" style="width:95%; height:6%; bottom:30px; text-align:center; position:absolute;">
+	Click to run the tween animation<br/>
+	Ease in/out :
+<input type="radio" name="easeinout" checked onClick="onEaseInOut(false);"/>Quadratic
+<input type="radio" name="easeinout" onClick="onEaseInOut(true);"/>Bounce
+	</div>
+
+</body>
+</html>
+<!--hình tròn di chuyển lên xuống-->
