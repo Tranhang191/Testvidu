@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Animating Materials with Key Frames</title>
+
+    <link href="./css/webglbook.css" rel="stylesheet" />
+    <script src="./libs/Three.js"></script>
+    <script src="./libs/jquery-1.6.4.js"></script>
+    <script src="./libs/jquery.mousewheel.js"></script>
+    <script src="./libs/RequestAnimationFrame.js"></script>
+    <script src="./sim/sim.js"></script>
+    <script src="./sim/animation.js"></script>
+    <script src="./sim/ColladaLoader.js"></script>
+    <script src="./cylinder.js"></script>
+    <script src="./test.js"></script>
+    <!-- <script src="./vidu.js"></script> -->
+    <!-- bài 3 -->
+    <style>
+        body {
+    
+            color:#000066;
+            background-color:#6699cc;
+            margin:0px;
+            padding:0px;
+            text-align:center;
+            overflow:hidden;
+            }
+            
+            #container {
+            position:absolute;
+            width:100%;
+            height:100%;
+            top:0%;
+            background-color:rgba(255,255,255,0);
+            z-index:1;
+            }
+    </style>
+    <!-- ví dụ bài 3 -->
+    <script>
+		// Constructor
+TextApp=function()
+{
+	Sim.App.call(this);
+}
+
+// Subclass Sim.App
+TextApp.prototype = new Sim.App();
+
+// Our custom initializer
+TextApp.prototype.init = function(param)
+{
+	// Call superclass init code to set up scene, renderer, default camera
+	Sim.App.prototype.init.call(this, param);
+	
+	// Set up some nice lighting
+	var pointLight = new THREE.PointLight( 0xffcc00, 1 );
+	pointLight.position.set( 0, 0, 100 );
+	this.scene.add( pointLight );
+
+	var spotLight = new THREE.SpotLight( 0xff0000, 1 );
+	spotLight.position.set( 100, 100, 100 );
+	this.scene.add( spotLight );
+		
+	// Position/orient the camera
+	this.camera.position.set(0, 21, 48);
+	this.camera.lookAt(new THREE.Vector3);
+
+	// Create our text and floor
+	this.createTextObjects();
+	this.createFloor();
+	
+	// Other initialization
+	this.mouseDown = false;
+}
+
+TextApp.prototype.createTextObjects = function()
+{
+	// Create the text objects
+    var text = new TextObject();
+    text.init('HANG');
+    this.addObject(text);
+    this.text1 = text;
+
+    // Create the text
+    var text = new TextObject();
+    text.init('HANG');
+    this.addObject(text);
+	text.object3D.rotation.x = Math.PI;
+	text.object3D.rotation.y = Math.PI * 2;
+	text.mesh.position.z = -TextApp.TEXT_DEPTH;
+	text.setPosition(0, -1, 0);
+    this.text2 = text;
+}
+
+TextApp.prototype.createFloor = function()
+{
+	var plane = new THREE.Mesh( new THREE.PlaneGeometry( 3000, 3000 ), new THREE.MeshPhongMaterial( { color: 0x333333, specular:0xff0000, shininess:100, opacity: 0.5, transparent: true } ) );
+	plane.rotation.x = -Math.PI/2;
+	plane.position.z = 3;
+	this.scene.add( plane );
+}
+
+TextApp.prototype.update = function()
+{
+	this.root.rotation.y += 0.005;
+}
+
+TextApp.prototype.handleMouseScroll = function(delta)
+{
+	var dx = delta;
+
+	this.camera.position.z -= dx;	
+}
+
+TextApp.prototype.handleMouseDown = function(x, y, point, normal)
+{
+	this.mouseDown = true;
+	this.lastx = x, this.lasty = y;
+}
+
+TextApp.prototype.handleMouseUp = function(x, y, point, normal)
+{
+	this.mouseDown = false;
+}
+
+TextApp.prototype.handleMouseMove = function(x, y, point, normal)
+{
+	if (this.mouseDown)
+	{
+		var dx = (x - this.lastx) * .02;
+		this.root.rotation.y += dx;
+		this.lastx = x;
+	}
+}
+
+TextApp.TEXT_DEPTH = 2;
+TextApp.TEXT_SIZE =8;
+TextApp.HOVER = 1;
+
+//Custom Model class
+TextObject = function()
+{
+	Sim.Object.call(this);
+}
+
+TextObject.prototype =  new Sim.Object();
+
+TextObject.prototype.init = function(str)
+{
+    // Create a group to contain text
+    var textGroup = new THREE.Object3D();
+    
+    // Tell the framework about our object
+    this.setObject3D(textGroup);
+
+    this.str = str;
+    this.createTextMesh();
+}
+
+TextObject.prototype.createTextMesh = function()
+{
+	var textMesh, textGeo, faceMaterial, textMaterialFront, textMaterialSide;
+
+	var text = this.str;
+	var height = TextApp.TEXT_DEPTH; // depth means height here
+	var size = TextApp.TEXT_SIZE;
+
+	var font = "droid sans";
+	var weight = "bold";
+	var style = "normal";
+
+	var faceMaterial = new THREE.MeshFaceMaterial();
+
+	var textMaterialFront = new THREE.MeshPhongMaterial( 
+			{ color: 0xffffff, shading: THREE.FlatShading } );
+
+	var textGeometry = new THREE.TextGeometry( text, 
+			{ size: size, height: height, font: font, weight: weight, style: style,
+
+		material: 0,
+		extrudeMaterial: 0
+	});
+
+	textGeometry.materials = [ textMaterialFront ];
+
+	textGeometry.computeBoundingBox();
+	textGeometry.computeVertexNormals();
+
+	textMesh = new THREE.Mesh( textGeometry, faceMaterial );
+	var centerOffset = -0.5 * ( textGeometry.boundingBox.x[ 1 ] - 
+			textGeometry.boundingBox.x[ 0 ] );
+	textMesh.position.x = centerOffset;
+	this.object3D.add(textMesh);
+	this.mesh = textMesh;
+}
+
+TextObject.prototype.update = function()
+{
+	Sim.Object.prototype.update.call(this);
+}
+
+	</script>
+
+	<script src="../fonts/optimer_bold.typeface.js"></script>
+	<script src="../fonts/droid/droid_sans_bold.typeface.js"></script>
+
+
+    <!-- // bài 1, bài 2    -->
+
+    <script>
+        // mản ảnh 1
+        Vidu = function()
+{
+    Sim.App.call(this); 
+}
+Vidu.prototype = new Sim.App();
+Vidu.prototype.init = function(param)
+{
+    Sim.App.prototype.init.call(this, param);
+    //tao camera va light
+    // Some scene lighting
+  var ambientLight = new THREE.AmbientLight(0x444444);
+  this.scene.add(ambientLight);
+
+  var directionalLight = new THREE.DirectionalLight(0xffffff, 1);
+  directionalLight.position.set(-0.3333, 1, 0.777).normalize();
+  this.scene.add(directionalLight);
+  this.directionalLight = directionalLight;
+
+  this.camera.position.set(0, 3.333, 6.667);
+  this.camera.lookAt(this.root.position);
+    var hoa = new Hoa();
+    hoa.init();
+    this.addObject(hoa);
+}
+
+Hoa = function()
+{
+    Sim.Object.call(this);
+}
+Hoa.prototype = new Sim.Object();
+Hoa.prototype.init = function()
+{
+    var geometry = new THREE.CylinderGeometry(1, 1, 2, 32);// tạo hình trụ
+    var material = new THREE.MeshPhongMaterial( // chinh mau
+		{
+			color: 0xf25346
+		}
+	);
+    var mesh = new THREE.Mesh(geometry,material);
+    this.setObject3D(mesh);
+
+}
+// ham xoay
+Hoa.prototype.update = function()
+{
+    this.object3D.rotation.x += 0.0025;
+}
+
+// màn ảnh 2---------------------------------------------------------
+
+Vidu1 = function()
+{
+    Sim.App.call(this); 
+}
+Vidu1.prototype = new Sim.App();
+Vidu1.prototype.init = function(param)
+{
+    Sim.App.prototype.init.call(this, param);
+    //tao camera va light
+    // Some scene lighting
+  var ambientLight = new THREE.AmbientLight(0x444444);
+  this.scene.add(ambientLight);
+
+  var directionalLight = new THREE.DirectionalLight(0xffffff, 1);
+  directionalLight.position.set(-0.3333, 1, 0.777).normalize();
+  this.scene.add(directionalLight);
+  this.directionalLight = directionalLight;
+
+  this.camera.position.set(0, 3.333, 6.667);
+  this.camera.lookAt(this.root.position);
+    var hoa = new Hoa1();
+    hoa.init();
+    this.addObject(hoa);
+}
+Hoa1 = function()
+{
+    Sim.Object.call(this);
+}
+Hoa1.prototype = new Sim.Object();
+Hoa1.prototype.init = function()
+{
+    var geometry = new THREE.SphereGeometry(1, 20, 20);// tạo hình trụ
+    var material = new THREE.MeshPhongMaterial( // chinh mau
+		{
+			color: 0xf25346 , ambient : 0xaa0000 
+		}
+	);
+    var mesh = new THREE.Mesh(geometry,material);
+    this.setObject3D(mesh);
+
+}
+// ham xoay
+Hoa1.prototype.update = function()
+{
+    this.object3D.rotation.y += 0.0025;
+}
+        //
+    </script>
+
+    <script>
+      $(document).ready(function () {
+        var renderer1 = null;
+        var scene1 = null;
+        var camera1 = null;
+        var mesh1 = null;
+        var theApp1 = null;
+        var container = document.getElementById('container');
+        theApp1 = new Vidu();
+        theApp1.init({ container: container });
+        theApp1.run();
+      });
+
+      $(document).ready(function () {
+        var renderer = null;
+        var scene = null;
+        var camera = null;
+        var mesh = null;
+        var theApp = null;
+        var containers = document.getElementById('containers');
+        theApp = new Vidu1();
+        theApp.init({ container: containers });
+        theApp.run();
+      });
+
+      $(document).ready(function () {
+        var renderer1 = null;
+        var scene1 = null;
+        var camera1 = null;
+        var mesh1 = null;
+        var theApp1 = null;
+        var container = document.getElementById('container');
+        theApp1 = new TextApp();
+        theApp1.init({ container: container });
+        theApp1.run();
+      });
+    </script>
+  </head>
+  <body>
+    <center><h1>Animating Materials</h1></center>
+    <div
+      id="container"
+      style="width: 50%; height: 50%; position: absolute; border: 0px solid black;"
+    ></div>
+
+    <div
+      id="containers"
+      style="width: 50%; height: 50%; position: absolute; right: 0; border: 1px solid pink;"
+    ></div>
+    <div
+      id="containers"
+      style="width: 50%; height: 50%; position: absolute; right: 0.5; left: 0.5; border: 1px solid pink;"
+    ></div>
+  </body>
+</html>
