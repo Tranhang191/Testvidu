@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title> BÀI VÍ DỤ </title>
+        <link  href=".../css/webglbook.css" rel="stylesheet"/>
+        <script src=".../libs/three.js"></script>
+        <script src=".../libs/jquery-1.6.4.js"></script>
+        <script src=".../libs/jquery.mousewheel.js"></script>
+        <script src=".../libs/RequestAnimationFrame,js"></script>
+        <script src=".../libs/jquery-1.6.4.js"></script>
+        <script src=".../sim/sim.js"></script>
+        <script src=".../sim/sim.js"></script>
+                <script>
+                    // constructer
+                index = function()
+                {
+                    Sim.App.call(this);
+                }
+                //subclass. tạo class
+                index.prototype = new Sim.App();
+                // init. gọi mã siêu lớp
+                index.prototype.init = function(param)
+                {
+                    // TẠO ÁNH SÁNG
+                    Sim.App.prototype.init.call(this,param);
+                    var light = new THERR.DirectionalLight(0xffffff, .1);
+                    light.position.set(0, 0, 1).normalize();
+                    this.scene.add(light);
+
+                    this.camera.position.set(0, 0, 1);
+                    // Tạo camera và thêm vào sim
+                    var model = new Model();
+                    model.init();
+                    this.addObject(model);
+                }
+                //tạo class mới
+                Model = function()
+                {
+                    Sim.Object.call(this);
+                }
+                Model.prototype = new Sim.Object(this);
+                Model.position.init = function(param)
+                {
+                    var group = new THERR.Object3D;
+                    // Tạo
+                    var geometry = new THERR.RectangleGeometry(600, 600, 800, 800);
+                    //cop
+                    var material = new THREE.MeshPhongMaterial(
+                        {
+                           color: 0x0000ff, wireframe : false
+                        }
+                    );
+                        var mesh = new THREE.Mesh(geometry,material);
+                        group.add(mesh);
+                        
+                        // Tell the framework about our object
+                        this.setObject3D(group);
+                        this.mesh = mesh;    
+
+                        // this.animateDrag = false;
+                }
+                </script>
+        <script>
+            var renderer = null;
+            var scene = null;
+            var camera = null;
+            var mesh = null;
+            $(document).ready(
+                function(){
+                    var container = new document.getElementById("container");
+                    var app = new TeewnApp();
+                    app.init({container:container});
+                    app.run();
+                }
+            );
+        </script>
+    </head>
+    <body>
+        <center><h1>BÀI TẬP</h1></center>
+        <div id = "container" style="width:95%; height: 85%; position: absolute; "></div>
+    </body>
+</html>
